@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "475474772217",
+    "firebase_url": "https://helmet-and-gears-default-rtdb.firebaseio.com",
+    "project_id": "helmet-and-gears",
+    "storage_bucket": "helmet-and-gears.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:475474772217:android:65edadeec7ee482ba3a228",
+        "android_client_info": {
+          "package_name": "com.example.ai36"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQAfvjQ36G0vZSJP2cLqJPzcPEBFi1p8E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:475474772217:android:3aaca3e03b261624a3a228",
+        "android_client_info": {
+          "package_name": "com.example.helmetandgears"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQAfvjQ36G0vZSJP2cLqJPzcPEBFi1p8E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:475474772217:android:50a47905277cc3f2a3a228",
+        "android_client_info": {
+          "package_name": "com.example.projectgears"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQAfvjQ36G0vZSJP2cLqJPzcPEBFi1p8E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
