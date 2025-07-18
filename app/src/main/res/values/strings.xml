@@ -9,4 +9,7 @@
     <string name="title_activity_navigation">NavigationActivity</string>
     <string name="title_activity_add_product">AddProductActivity</string>
     <string name="title_activity_update_product">UpdateProductActivity</string>
+    <string name="title_activity_cart">CartActivity</string>
+    <string name="title_activity_add_cart">AddCartActivity</string>
+    <string name="title_activity_add_to_cart">AddToCartActivity</string>
 </resources>

@@ -1,6 +1,6 @@
 package com.example.ai36.model
 
-import android.R
+
 
 data class ProductModel(
     var productId: String = "",

@@ -113,7 +113,7 @@ fun AddProductBody(
                         )
                     } else {
                         Image(
-                            painterResource(R.drawable.img),
+                            painterResource(R.drawable.imgplchol),
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
