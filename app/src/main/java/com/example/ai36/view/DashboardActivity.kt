@@ -109,7 +109,7 @@ fun DashboardBody() {
                             },colors = IconButtonDefaults.iconButtonColors(
                                 contentColor = Color.Red
                             )) {
-                                Icon(Icons.Default.Delete,contentDescription = null)
+                                Icon(Icons.Default.Delete,contentDescription = "DeleteProduct")
                             }
                         }
                     }
