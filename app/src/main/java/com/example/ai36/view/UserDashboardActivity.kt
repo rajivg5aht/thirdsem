@@ -1,6 +1,6 @@
 package com.example.ai36.view
 
-package com.example.sportsequipmentstore.view
+
 
 import android.content.Intent
 import android.os.Bundle
@@ -28,7 +28,7 @@ import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.example.sportsequipmentstore.LoginActivity
-import com.example.sportsequipmentstore.R
+import com.example.ai36.R
 import com.example.sportsequipmentstore.model.CartItemModel
 import com.example.sportsequipmentstore.model.WishlistItemModel
 import com.example.sportsequipmentstore.repository.*
