@@ -27,7 +27,7 @@ import androidx.lifecycle.ViewModelProvider
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
-import com.example.sportsequipmentstore.LoginActivity
+import com.example.ai36.LoginActivity
 import com.example.ai36.R
 import com.example.sportsequipmentstore.model.CartItemModel
 import com.example.sportsequipmentstore.model.WishlistItemModel
