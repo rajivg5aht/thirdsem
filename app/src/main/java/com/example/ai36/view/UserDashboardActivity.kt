@@ -30,7 +30,7 @@ import coil.request.ImageRequest
 import com.example.ai36.LoginActivity
 import com.example.ai36.R
 import com.example.ai36.model.CartItemModel
-import com.example.sportsequipmentstore.model.WishlistItemModel
+import com.example.ai36.model.WishlistItemModel
 import com.example.sportsequipmentstore.repository.*
 import com.example.sportsequipmentstore.viewmodel.*
 
