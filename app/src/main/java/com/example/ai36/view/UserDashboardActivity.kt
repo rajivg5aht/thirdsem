@@ -32,7 +32,7 @@ import com.example.ai36.R
 import com.example.ai36.model.CartItemModel
 import com.example.ai36.model.WishlistItemModel
 import com.example.ai36.repository.*
-import com.example.sportsequipmentstore.viewmodel.*
+import com.example.ai36.viewmodel.*
 
 class UserDashboardActivity : ComponentActivity() {
 
