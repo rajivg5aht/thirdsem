@@ -45,7 +45,7 @@ class UserDashboardActivity : ComponentActivity() {
 
         val cartRepo = CartRepositoryImpl()
         val wishlistRepo = WishlistRepositoryImpl
-        val userRepo = UserRepositoryImplementation()
+        val userRepo = UserRepositoryImpl()
 
         cartViewModel = ViewModelProvider(this, CartViewModelFactory(cartRepo))[CartViewModel::class.java]
         wishlistViewModel = ViewModelProvider(this, WishlistViewModelFactory(wishlistRepo))[WishlistViewModel::class.java]

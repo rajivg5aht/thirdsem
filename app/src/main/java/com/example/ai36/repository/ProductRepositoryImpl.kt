@@ -1,5 +1,6 @@
 package com.example.ai36.repository
 
+
 import android.content.Context
 import android.net.Uri
 import android.os.Handler
@@ -15,16 +16,16 @@ import com.google.firebase.database.ValueEventListener
 import java.io.InputStream
 import java.util.concurrent.Executors
 
-class ProductRepositoryImpl : ProductRepository {
 
+class ProductRepositoryImpl : ProductRepository {
     val database = FirebaseDatabase.getInstance()
     val ref = database.reference.child("products")
 
     private val cloudinary = Cloudinary(
         mapOf(
-            "cloud_name" to "dtx0nbagq",
-            "api_key" to "662718179189399",
-            "api_secret" to "S9VQxhPwLDh3kziX-UFQXreDegc"
+            "cloud_name" to "dptcwgb55",
+            "api_key" to "322278516192191",
+            "api_secret" to "rEtvjzUdiNNbNKU2bEX4bOEx1QY"
         )
     )
 
@@ -78,77 +79,19 @@ class ProductRepositoryImpl : ProductRepository {
     }
 
     override fun addProduct(
-        productModel: ProductModel,
+        model: ProductModel,
         callback: (Boolean, String) -> Unit
     ) {
-        var id = ref.push().key.toString()
-        productModel.productId = id
-        ref.child(id).setValue(productModel).addOnCompleteListener {
-            if (it.isSuccessful) {
-                callback(true, "product added")
-            } else {
-                callback(false, "${it.exception?.message}")
-
+        val id = ref.push().key.toString()
+        model.productId = id
+        ref.child(model.productId).setValue(model).addOnCompleteListener {
+            if(it.isSuccessful){
+                callback(true,"Product added successfully")
+            }else{
+                callback(false,"${it.exception?.message}")
             }
         }
     }
-
-    override fun deleteProduct(
-        productId: String,
-        callback: (Boolean, String) -> Unit
-    ) {
-        ref.child(productId).removeValue().addOnCompleteListener {
-            if (it.isSuccessful) {
-                callback(true, "product deleted")
-            } else {
-                callback(false, "${it.exception?.message}")
-
-            }
-        }
-    }
-
-    override fun getProductById(
-        productId: String,
-        callback: (Boolean, String, ProductModel?) -> Unit
-    ) {
-        ref.child(productId).addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    var products = snapshot.getValue(ProductModel::class.java)
-                    if (products != null) {
-                        callback(true, "product fetched", products)
-                    }
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                callback(false, error.message, null)
-            }
-        })
-    }
-
-    override fun getAllProduct(callback: (Boolean, String, List<ProductModel?>) -> Unit) {
-        ref.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                var allProducts = mutableListOf<ProductModel>()
-                if (snapshot.exists()) {
-                    for (eachData in snapshot.children) {
-                        var products = eachData.getValue(ProductModel::class.java)
-                        if (products != null) {
-                            allProducts.add(products)
-                        }
-                    }
-                    callback(true, "fetched", allProducts)
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                callback(false, error.message, emptyList())
-            }
-        })
-    }
-
-
 
 
     override fun updateProduct(
@@ -156,13 +99,69 @@ class ProductRepositoryImpl : ProductRepository {
         data: MutableMap<String, Any?>,
         callback: (Boolean, String) -> Unit
     ) {
-        ref.child(productId).setValue(data).addOnCompleteListener {
-            if (it.isSuccessful) {
-                callback(true, "product updated")
-            } else {
-                callback(false, "${it.exception?.message}")
-
+        ref.child(productId).updateChildren(data).addOnCompleteListener {
+            if(it.isSuccessful){
+                callback(true,"Product added successfully")
+            }else{
+                callback(false,"${it.exception?.message}")
             }
         }
+    }
+
+
+    override fun deleteProduct(
+        productId: String,
+        callback: (Boolean, String) -> Unit
+    ) {
+        ref.child(productId).removeValue().addOnCompleteListener {
+            if(it.isSuccessful){
+                callback(true,"Product deleted successfully")
+            }else{
+                callback(false,"${it.exception?.message}")
+            }
+        }
+    }
+
+    override fun getProductById(
+        productId: String,
+        callback: (ProductModel?, Boolean, String) -> Unit
+    ) {
+        ref.child(productId).addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if(snapshot.exists()){
+                    val product = snapshot.getValue(ProductModel::class.java)
+                    if(product!=null){
+                        callback(product, true, "product fetched")
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                callback(null,false,error.message)
+            }
+
+        })
+    }
+
+    override fun getAllProducts(callback: (List<ProductModel?>, Boolean, String) -> Unit) {
+        ref.addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()){
+                    var allProducts = mutableListOf<ProductModel>()
+                    for (eachProduct in snapshot.children){
+                        var products = eachProduct.getValue(ProductModel::class.java)
+                        if(products != null){
+                            allProducts.add(products)
+                        }
+                    }
+                    callback(allProducts,true,"product fetched")
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                callback(emptyList(),false,error.message)
+            }
+
+        })
     }
 }

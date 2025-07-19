@@ -1,5 +1,7 @@
 package com.example.ai36.viewmodel
 
+
+
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.LiveData
@@ -8,58 +10,81 @@ import androidx.lifecycle.ViewModel
 import com.example.ai36.model.ProductModel
 import com.example.ai36.repository.ProductRepository
 
-class ProductViewModel(val repo: ProductRepository) : ViewModel() {
+class ProductViewModel(private val repo: ProductRepository) : ViewModel() {
 
-    fun uploadImage(context: Context,imageUri: Uri, callback: (String?) -> Unit){
-        repo.uploadImage(context,imageUri,callback)
-    }
-
-    fun addProduct(productModel: ProductModel, callback: (Boolean, String) -> Unit) {
-        repo.addProduct(productModel, callback)
-    }
-
-    fun deleteProduct(productId: String, callback: (Boolean, String) -> Unit) {
-        repo.deleteProduct(productId, callback)
-    }
-
-    private val _products = MutableLiveData<ProductModel?>()
-    val products: LiveData<ProductModel?> get() = _products
+    private val _loading = MutableLiveData<Boolean>()
+    val loading: LiveData<Boolean> get() = _loading
 
     private val _allProducts = MutableLiveData<List<ProductModel?>>()
     val allProducts: LiveData<List<ProductModel?>> get() = _allProducts
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> get() = _isLoading
+    private val _filteredProducts = MutableLiveData<List<ProductModel?>>()
+    val filteredProducts: LiveData<List<ProductModel?>> get() = _filteredProducts
 
-    fun getProductById(productId: String) {
-        repo.getProductById(productId) { success, message, products ->
-            if (success && products != null) {
-                _products.postValue(products)
-            } else {
-                _products.postValue(null)
+    private val _product = MutableLiveData<ProductModel?>()
+    val product: LiveData<ProductModel?> get() = _product
 
-            }
-        }
+    init {
+        _filteredProducts.value = emptyList()
     }
 
-
-    fun getAllProduct() {
-        _isLoading.value = true
-        repo.getAllProduct { success, message, products ->
-            if (success && products != null) {
-                _allProducts.postValue(products)
-                _isLoading.value = false
-            } else {
-                _isLoading.value = false
-                _allProducts.postValue(emptyList())
-
-            }
-        }
+    // Upload Image method
+    fun uploadImage(context: Context, imageUri: Uri, callback: (String?) -> Unit) {
+        repo.uploadImage(context, imageUri, callback)
     }
 
-    fun updateProduct(
-        productId: String, data: MutableMap<String, Any?>, callback: (Boolean, String) -> Unit
-    ) {
+    // Add new product
+    fun addProduct(model: ProductModel, callback: (Boolean, String) -> Unit) {
+        repo.addProduct(model, callback)
+    }
+
+    // Update existing product
+    fun updateProduct(productId: String, data: MutableMap<String, Any?>, callback: (Boolean, String) -> Unit) {
         repo.updateProduct(productId, data, callback)
+    }
+
+    // Delete product
+    fun deleteProduct(productId: String, callback: (Boolean, String) -> Unit) {
+        repo.deleteProduct(productId, callback)
+    }
+
+    // Get product by ID
+    fun getProductById(productId: String) {
+        repo.getProductById(productId) { data, success, _ ->
+            if (success) {
+                _product.postValue(data)
+            } else {
+                _product.postValue(null)
+            }
+        }
+    }
+
+    // Fetch all products from repo
+    fun getAllProducts() {
+        _loading.postValue(true)
+        repo.getAllProducts { data, success, _ ->
+            if (success) {
+                _loading.postValue(false)
+                _allProducts.postValue(data)
+                _filteredProducts.postValue(data)  // Initialize filtered list to all products
+            } else {
+                _loading.postValue(false)
+                _allProducts.postValue(emptyList())
+                _filteredProducts.postValue(emptyList())
+            }
+        }
+    }
+
+    // Filter products by search query
+    fun filterProducts(query: String) {
+        val all = _allProducts.value ?: emptyList()
+        if (query.isBlank()) {
+            _filteredProducts.postValue(all)
+        } else {
+            val filtered = all.filter {
+                it?.productName?.contains(query, ignoreCase = true) == true
+            }
+            _filteredProducts.postValue(filtered)
+        }
     }
 }

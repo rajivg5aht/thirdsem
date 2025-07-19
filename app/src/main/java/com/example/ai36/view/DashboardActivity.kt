@@ -60,7 +60,7 @@ fun DashboardBody() {
 
 
     LaunchedEffect(Unit) {
-        viewModel.getAllProduct()
+        viewModel.getAllProducts()
     }
 
     Scaffold(
@@ -79,8 +79,8 @@ fun DashboardBody() {
                 Card(modifier = Modifier.fillMaxWidth().padding(15.dp)) {
                     Column(modifier = Modifier.padding(15.dp)) {
                         Text("${eachProduct?.productName}")
-                        Text("${eachProduct?.price}")
-                        Text("${eachProduct?.description}")
+                        Text("${eachProduct?.productPrice}")
+                        Text("${eachProduct?.productDescription}")
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End
