@@ -1,77 +1,64 @@
 package com.example.ai36.viewmodel
 
 
+
+
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.ai36.model.CartItemModel
-import com.example.ai36.model.ProductModel
 import com.example.ai36.repository.CartRepository
 
 
-class CartViewModel(private val cartRepo: CartRepository) : ViewModel() {
+class CartViewModel(private val cartRepository: CartRepository) : ViewModel() {
 
     private val _cartItems = MutableLiveData<List<CartItemModel>>()
     val cartItems: LiveData<List<CartItemModel>> get() = _cartItems
 
-    private val _cartTotal = MutableLiveData<Double>()
-    val cartTotal: LiveData<Double> get() = _cartTotal
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> get() = _error
 
-    private val _cartItemCount = MutableLiveData<Int>()
-    val cartItemCount: LiveData<Int> get() = _cartItemCount
-
-    private val _loading = MutableLiveData<Boolean>()
-    val loading: LiveData<Boolean> get() = _loading
-
-    fun addToCart(product: ProductModel, quantity: Int = 1, callback: (Boolean, String) -> Unit) {
-        val cartItem = CartItemModel(
-            productId = product.productId,
-            productName = product.productName,
-            productPrice = product.price,
-            productDescription = product.description,
-            image = product.image,
-            quantity = quantity
-        )
-
-        cartRepo.addToCart(cartItem, callback)
-    }
-
-    fun updateCartItemQuantity(cartId: String, newQuantity: Int, productPrice: Double, callback: (Boolean, String) -> Unit) {
-        val updateData = mutableMapOf<String, Any?>(
-            "quantity" to newQuantity,
-            "totalPrice" to productPrice * newQuantity
-        )
-        cartRepo.updateCartItem(cartId, updateData, callback)
-    }
-
-    fun removeFromCart(cartId: String, callback: (Boolean, String) -> Unit) {
-        cartRepo.removeFromCart(cartId, callback)
-    }
-
-    fun getCartItems() {
-        _loading.postValue(true)
-        cartRepo.getCartItems { items, success, message ->
-            _loading.postValue(false)
+    fun loadCartItems() {
+        cartRepository.getCartItems { items, success, message ->
             if (success) {
                 _cartItems.postValue(items)
-                updateCartSummary(items)
             } else {
-                _cartItems.postValue(emptyList())
-                _cartTotal.postValue(0.0)
-                _cartItemCount.postValue(0)
+                _error.postValue(message)
             }
         }
     }
 
-    fun clearCart(callback: (Boolean, String) -> Unit) {
-        cartRepo.clearCart(callback)
+    fun addToCart(item: CartItemModel) {
+        cartRepository.addToCart(item) { success, message ->
+            if (!success) {
+                _error.postValue(message)
+            } else {
+                loadCartItems() // refresh after adding
+            }
+        }
     }
 
-    private fun updateCartSummary(items: List<CartItemModel>) {
-        val total = items.sumOf { it.totalPrice }
-        val itemCount = items.sumOf { it.quantity }
+    fun updateQuantity(cartItemId: String, newQuantity: Int) {
+        cartRepository.updateCartItemQuantity(cartItemId, newQuantity) { success, message ->
+            if (!success) {
+                _error.postValue(message)
+            } else {
+                loadCartItems() // refresh after updating
+            }
+        }
+    }
 
-        _cartTotal.postValue(total)
-        _cartItemCount.postValue(itemCount)
+    fun removeCartItem(cartItemId: String) {
+        cartRepository.removeCartItem(cartItemId) { success, message ->
+            if (!success) {
+                _error.postValue(message)
+            } else {
+                loadCartItems() // refresh after removing
+            }
+        }
+    }
+
+    fun clearError() {
+        _error.postValue(null)
     }
 }

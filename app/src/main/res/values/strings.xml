@@ -13,4 +13,7 @@
     <string name="title_activity_add_cart">AddCartActivity</string>
     <string name="title_activity_add_to_cart">AddToCartActivity</string>
     <string name="title_activity_order">OrderActivity</string>
+    <string name="title_activity_wishlist">WishlistActivity</string>
+    <string name="title_activity_edit_profile">EditProfileActivity</string>
+    <string name="title_activity_address">AddressActivity</string>
 </resources>

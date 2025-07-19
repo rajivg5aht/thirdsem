@@ -1,11 +1,8 @@
-
-
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.google.gms.google.services) // ✅ Firebase plugin
 }
 
 android {
@@ -31,20 +28,31 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         compose = true
     }
 }
 
 dependencies {
+    // ✅ Firebase BoM (aligns all Firebase library versions)
+    implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
 
+    // ✅ Firebase libraries (no version needed)
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-database-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
+    // ✅ Jetpack Compose and AndroidX libraries
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -57,8 +65,14 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.database)
+
+    // ✅ Additional libraries
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.0")
+    implementation("com.cloudinary:cloudinary-android:2.1.0")
+    implementation("com.squareup.picasso:picasso:2.8")
+    implementation("io.coil-kt:coil-compose:2.2.2")
+
+    // ✅ Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -66,9 +80,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("androidx.compose.runtime:runtime-livedata:1.6.0")
-    implementation("com.cloudinary:cloudinary-android:2.1.0")
-    implementation("com.squareup.picasso:picasso:2.8")
-    implementation("io.coil-kt:coil-compose:2.2.2")
-
 }

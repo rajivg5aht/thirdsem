@@ -17,9 +17,9 @@
         tools:replace="android:fullBackupContent"
         tools:targetApi="31">
         <activity
-            android:name=".view.OrderActivity"
+            android:name=".view.AddressActivity"
             android:exported="true"
-            android:label="@string/title_activity_order"
+            android:label="@string/title_activity_address"
             android:theme="@style/Theme.AI36">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,9 +28,42 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".view.AddToCartActivity"
+            android:name=".view.EditProfileActivity"
             android:exported="true"
-            android:label="@string/title_activity_add_to_cart"
+            android:label="@string/title_activity_edit_profile"
+            android:theme="@style/Theme.AI36">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".view.CartActivity"
+            android:exported="true"
+            android:label="@string/title_activity_cart"
+            android:theme="@style/Theme.AI36">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".view.WishlistActivity"
+            android:exported="true"
+            android:label="@string/title_activity_wishlist"
+            android:theme="@style/Theme.AI36">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".view.OrderActivity"
+            android:exported="true"
+            android:label="@string/title_activity_order"
             android:theme="@style/Theme.AI36">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
