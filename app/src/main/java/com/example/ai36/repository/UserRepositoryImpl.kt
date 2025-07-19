@@ -3,32 +3,24 @@ package com.example.ai36.repository
 import com.example.ai36.model.UserModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 
 class UserRepositoryImpl : UserRepository {
-    val auth: FirebaseAuth = FirebaseAuth.getInstance()
-
-    val database: FirebaseDatabase = FirebaseDatabase.getInstance()
-
-    val ref: DatabaseReference = database.reference.child("users")
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+    private val ref: DatabaseReference = database.reference.child("users")
 
     override fun login(
         email: String,
         password: String,
         callback: (Boolean, String) -> Unit
     ) {
-//        auth.currentUser.uid
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener {
                 if (it.isSuccessful) {
                     callback(true, "Login successfully")
                 } else {
-                    callback(false, "${it.exception?.message}")
-
+                    callback(false, it.exception?.message ?: "Login failed")
                 }
             }
     }
@@ -41,11 +33,9 @@ class UserRepositoryImpl : UserRepository {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener {
                 if (it.isSuccessful) {
-                    callback(true, "Register successfully",
-                        "${auth.currentUser?.uid}")
+                    callback(true, "Register successfully", auth.currentUser?.uid.orEmpty())
                 } else {
-                    callback(false, "${it.exception?.message}", "")
-
+                    callback(false, it.exception?.message ?: "Register failed", "")
                 }
             }
     }
@@ -55,15 +45,11 @@ class UserRepositoryImpl : UserRepository {
         model: UserModel,
         callback: (Boolean, String) -> Unit
     ) {
-        //create -> setValue()
-        //update -> updateChildren()
-        //delete -> removeValue()
         ref.child(userId).setValue(model).addOnCompleteListener {
-            if(it.isSuccessful){
-                callback(true,"User added")
-            }else{
-                callback(false,"${it.exception?.message}")
-
+            if (it.isSuccessful) {
+                callback(true, "User added")
+            } else {
+                callback(false, it.exception?.message ?: "Add failed")
             }
         }
     }
@@ -74,11 +60,10 @@ class UserRepositoryImpl : UserRepository {
     ) {
         auth.sendPasswordResetEmail(email)
             .addOnCompleteListener {
-                if(it.isSuccessful){
-                    callback(true,"Reset email sent to $email")
-                }else{
-                    callback(false,"${it.exception?.message}")
-
+                if (it.isSuccessful) {
+                    callback(true, "Reset email sent to $email")
+                } else {
+                    callback(false, it.exception?.message ?: "Reset failed")
                 }
             }
     }
@@ -88,11 +73,10 @@ class UserRepositoryImpl : UserRepository {
         callback: (Boolean, String) -> Unit
     ) {
         ref.child(userId).removeValue().addOnCompleteListener {
-            if(it.isSuccessful){
-                callback(true,"User deleted")
-            }else{
-                callback(false,"${it.exception?.message}")
-
+            if (it.isSuccessful) {
+                callback(true, "User deleted")
+            } else {
+                callback(false, it.exception?.message ?: "Delete failed")
             }
         }
     }
@@ -103,11 +87,10 @@ class UserRepositoryImpl : UserRepository {
         callback: (Boolean, String) -> Unit
     ) {
         ref.child(userId).updateChildren(data).addOnCompleteListener {
-            if(it.isSuccessful){
-                callback(true,"User edited")
-            }else{
-                callback(false,"${it.exception?.message}")
-
+            if (it.isSuccessful) {
+                callback(true, "User edited")
+            } else {
+                callback(false, it.exception?.message ?: "Edit failed")
             }
         }
     }
@@ -120,30 +103,27 @@ class UserRepositoryImpl : UserRepository {
         userId: String,
         callback: (Boolean, String, UserModel?) -> Unit
     ) {
-        ref.child(userId).addValueEventListener(object : ValueEventListener{
+        ref.child(userId).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                if(snapshot.exists()){
-                    var users = snapshot.getValue(UserModel::class.java)
-                    if(users != null){
-                        callback(true,"Fetched",users)
-                    }
+                if(snapshot.exists()) {
+                    val user = snapshot.getValue(UserModel::class.java)
+                    callback(true, "Fetched", user)
+                } else {
+                    callback(false, "User not found", null)
                 }
             }
-
             override fun onCancelled(error: DatabaseError) {
-                callback(false,error.message,null)
+                callback(false, error.message, null)
             }
-
         })
     }
 
     override fun logout(callback: (Boolean, String) -> Unit) {
         try {
             auth.signOut()
-            callback(true,"logout successfully")
-        }catch (e: Exception){
-            callback(false,e.message.toString())
-
+            callback(true, "logout successfully")
+        } catch (e: Exception) {
+            callback(false, e.message ?: "Logout failed")
         }
     }
 }

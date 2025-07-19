@@ -3,7 +3,6 @@ package com.example.ai36.view
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -45,17 +44,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 import com.example.ai36.R
 
 class ProfileActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        // Correct edge-to-edge setup
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
             Scaffold { innerPadding ->
                 ProfileBody(innerPadding)
             }
-
         }
     }
 }
@@ -70,7 +72,6 @@ fun ProfileBody(innerPadding: PaddingValues) {
             .padding(innerPadding)
             .fillMaxSize()
             .background(color = Color.White)
-
     ) {
         Row(
             modifier = Modifier
@@ -78,40 +79,34 @@ fun ProfileBody(innerPadding: PaddingValues) {
                 .padding(horizontal = 10.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
-
         ) {
-            //method 1
             Icon(
                 imageVector = Icons.Default.KeyboardArrowLeft,
-//                tint = Color.Red,
-                contentDescription = null, modifier = Modifier
+                contentDescription = null,
+                modifier = Modifier
                     .height(28.dp)
                     .width(28.dp)
             )
 
             Text(
-                text = "Andrew", style = TextStyle(
+                text = "Andrew",
+                style = TextStyle(
                     fontSize = 15.sp,
-//                textDecoration = TextDecoration.Underline,
                     fontWeight = FontWeight.Bold,
-//                fontStyle = FontStyle.Italic,
                 )
             )
 
-            //method 2
             Icon(
                 painter = painterResource(R.drawable.baseline_more_horiz_24),
-//                tint = Color.Red,
-                contentDescription = null, modifier = Modifier
+                contentDescription = null,
+                modifier = Modifier
                     .height(28.dp)
                     .width(28.dp)
                     .clickable {
                         //TO-DO
                     }
             )
-
         }
-
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -120,7 +115,6 @@ fun ProfileBody(innerPadding: PaddingValues) {
         ) {
             Image(
                 painter = painterResource(R.drawable.person),
-//                tint = Color.Red,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -176,9 +170,10 @@ fun ProfileBody(innerPadding: PaddingValues) {
             Text("Followed by jeena and anna")
         }
 
-//        Spacer(modifier = Modifier.height(25.dp))
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 15.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
@@ -197,7 +192,8 @@ fun ProfileBody(innerPadding: PaddingValues) {
             OutlinedButton(
                 onClick = {
 
-                }, shape = RoundedCornerShape(10.dp),
+                },
+                shape = RoundedCornerShape(10.dp),
                 border = BorderStroke(1.dp, Color.Gray),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = Color.Black
@@ -205,39 +201,34 @@ fun ProfileBody(innerPadding: PaddingValues) {
             ) {
                 Text("Message")
             }
-            OutlinedButton(onClick = {
+            OutlinedButton(
+                onClick = {
 
-            },shape = RoundedCornerShape(10.dp),
+                },
+                shape = RoundedCornerShape(10.dp),
                 border = BorderStroke(1.dp, Color.Gray),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = Color.Black
-                )) {
+                )
+            ) {
                 Text("Email")
             }
-            OutlinedButton(onClick = {
+            OutlinedButton(
+                onClick = {
 
-            },shape = RoundedCornerShape(10.dp),
+                },
+                shape = RoundedCornerShape(10.dp),
                 border = BorderStroke(1.dp, Color.Gray),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = Color.Black
-                )) {
+                )
+            ) {
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = null
                 )
             }
         }
-
-
-//        Row{
-//            Card(modifier = Modifier.height(200.dp).weight(1f)) {
-//
-//            }
-//            Spacer(modifier = Modifier.width(10.dp))
-//            Card(modifier = Modifier.height(200.dp).weight(3f)){
-//
-//            }
-//        }
     }
 }
 
@@ -246,5 +237,3 @@ fun ProfileBody(innerPadding: PaddingValues) {
 fun PreviewProfile() {
     ProfileBody(innerPadding = PaddingValues(0.dp))
 }
-
-

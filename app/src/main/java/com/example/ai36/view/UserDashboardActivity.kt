@@ -1,9 +1,8 @@
 package com.example.ai36.view
 
-
-
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,15 +26,16 @@ import androidx.lifecycle.ViewModelProvider
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
-import com.example.ai36.LoginActivity
 import com.example.ai36.R
 import com.example.ai36.model.CartItemModel
 import com.example.ai36.model.WishlistItemModel
-import com.example.ai36.repository.*
+import com.example.ai36.repository.CartRepositoryImpl
+import com.example.ai36.repository.ProductRepositoryImpl
+import com.example.ai36.repository.UserRepositoryImpl
+import com.example.ai36.repository.WishlistRepositoryImpl
 import com.example.ai36.viewmodel.*
 
 class UserDashboardActivity : ComponentActivity() {
-
     private lateinit var cartViewModel: CartViewModel
     private lateinit var wishlistViewModel: WishlistViewModel
     private lateinit var userViewModel: UserViewModel
@@ -43,24 +43,24 @@ class UserDashboardActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val cartRepo = CartRepositoryImpl()
-        val wishlistRepo = WishlistRepositoryImpl
-        val userRepo = UserRepositoryImpl()
-
-        cartViewModel = ViewModelProvider(this, CartViewModelFactory(cartRepo))[CartViewModel::class.java]
-        wishlistViewModel = ViewModelProvider(this, WishlistViewModelFactory(wishlistRepo))[WishlistViewModel::class.java]
-        userViewModel = ViewModelProvider(this, UserViewModelFactory(userRepo))[UserViewModel::class.java]
+        cartViewModel = ViewModelProvider(this, CartViewModelFactory(CartRepositoryImpl()))[CartViewModel::class.java]
+        wishlistViewModel = ViewModelProvider(this, WishlistViewModelFactory(WishlistRepositoryImpl))[WishlistViewModel::class.java]
+        userViewModel = ViewModelProvider(this, UserViewModelFactory(UserRepositoryImpl()))[UserViewModel::class.java]
 
         setContent {
-            UserDashboardBody(cartViewModel, wishlistViewModel, userViewModel)
+            MaterialTheme {
+                UserDashboardBody(
+                    cartViewModel = cartViewModel,
+                    wishlistViewModel = wishlistViewModel,
+                    userViewModel = userViewModel
+                )
+            }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        userViewModel.getCurrentUser()?.uid?.let {
-            userViewModel.getUserById(it)
-        }
+        userViewModel.getCurrentUser()?.uid?.let { userViewModel.getUserById(it) }
     }
 }
 
@@ -72,26 +72,21 @@ fun UserDashboardBody(
     userViewModel: UserViewModel
 ) {
     val context = LocalContext.current
-    val repo = remember { ProductRepositoryImpl() }
-    val productViewModel = remember { ProductViewModel(repo) }
 
-    val currentUserId = userViewModel.getCurrentUser()?.uid
-    val user by userViewModel.users.observeAsState()
-    val allProducts by productViewModel.allProducts.observeAsState(initial = emptyList())
-    val filteredProducts by productViewModel.filteredProducts.observeAsState(initial = emptyList())
-    val loading by productViewModel.loading.observeAsState(initial = true)
-
-    var menuExpanded by remember { mutableStateOf(false) }
+    val productViewModel = remember { ProductViewModel(ProductRepositoryImpl()) }
+    val products by productViewModel.filteredProducts.observeAsState(initial = emptyList())
+    val loading by productViewModel.loading.observeAsState(initial = false)
     var searchQuery by remember { mutableStateOf("") }
 
-    LaunchedEffect(currentUserId) {
-        currentUserId?.let { userViewModel.getUserById(it) }
+    val user by userViewModel.user.observeAsState()
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    // Refresh user and products on load
+    LaunchedEffect(userViewModel.getCurrentUser()?.uid) {
+        userViewModel.getCurrentUser()?.uid?.let { userViewModel.getUserById(it) }
         productViewModel.getAllProducts()
     }
-
-    LaunchedEffect(searchQuery) {
-        productViewModel.filterProducts(searchQuery)
-    }
+    LaunchedEffect(searchQuery) { productViewModel.filterProducts(searchQuery) }
 
     Scaffold(
         topBar = {
@@ -108,7 +103,6 @@ fun UserDashboardBody(
                     }) {
                         Icon(Icons.Default.Person, contentDescription = "Edit Profile", tint = Color.White)
                     }
-
                     Box {
                         IconButton(onClick = { menuExpanded = true }) {
                             Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = Color.White)
@@ -166,12 +160,12 @@ fun UserDashboardBody(
             }
         }
     ) { padding ->
-
         Column(
             Modifier
                 .padding(padding)
                 .fillMaxSize()
         ) {
+            // User profile row at top
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(12.dp)
@@ -179,17 +173,20 @@ fun UserDashboardBody(
                 val imageModifier = Modifier
                     .size(48.dp)
                     .background(Color.LightGray, CircleShape)
-
-                if (!user?.image.isNullOrEmpty()) {
+                val imageUrl = user?.image
+                Log.d("UserImage", "Image URL: $imageUrl")
+                if (!imageUrl.isNullOrBlank()) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(user?.image)
-                            .diskCachePolicy(CachePolicy.DISABLED)
-                            .memoryCachePolicy(CachePolicy.DISABLED)
+                            .data(imageUrl)
+                            .crossfade(true)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
                             .build(),
                         contentDescription = "Profile Picture",
                         modifier = imageModifier,
                         contentScale = ContentScale.Crop,
+                        placeholder = painterResource(id = R.drawable.profilepicplaceholder),
                         error = painterResource(id = R.drawable.profilepicplaceholder)
                     )
                 } else {
@@ -200,15 +197,13 @@ fun UserDashboardBody(
                         tint = Color.White
                     )
                 }
-
                 Spacer(modifier = Modifier.width(12.dp))
-
                 Text(
                     text = "Welcome, ${user?.firstName ?: "User"}!",
                     style = MaterialTheme.typography.titleLarge
                 )
             }
-
+            // Search bar
             TextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -218,15 +213,15 @@ fun UserDashboardBody(
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 4.dp)
             )
-
-            if (loading) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            // Products list
+            when {
+                loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
-            } else {
-                LazyColumn(modifier = Modifier.padding(8.dp)) {
-                    items(filteredProducts.size) { index ->
-                        val product = filteredProducts[index]
+                products.isEmpty() -> Text("No products found.", Modifier.padding(16.dp))
+                else -> LazyColumn(Modifier.padding(8.dp)) {
+                    items(products.size) { index ->
+                        val product = products[index]
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -261,21 +256,17 @@ fun UserDashboardBody(
                                         )
                                         cartViewModel.addToCart(cartItem)
                                         Toast.makeText(context, "Added to cart", Toast.LENGTH_SHORT).show()
-                                    }) {
-                                        Text("Add to Cart")
-                                    }
+                                    }) { Text("Add to Cart") }
 
                                     OutlinedButton(onClick = {
-                                        val item = WishlistItemModel(
+                                        val wishlistItem = WishlistItemModel(
                                             productName = product?.productName ?: "",
                                             productPrice = product?.productPrice ?: 0.0,
                                             image = product?.image ?: ""
                                         )
-                                        wishlistViewModel.addToWishlist(item)
+                                        wishlistViewModel.addToWishlist(wishlistItem)
                                         Toast.makeText(context, "Added to wishlist", Toast.LENGTH_SHORT).show()
-                                    }) {
-                                        Text("❤️ Wishlist")
-                                    }
+                                    }) { Text("❤️ Wishlist") }
                                 }
                             }
                         }

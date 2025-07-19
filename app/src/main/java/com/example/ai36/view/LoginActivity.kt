@@ -261,21 +261,21 @@ fun LoginBody() {
 //                    if (email == "ram@gmail.com"
 //                        && password == "password"
 //                    ) {
-                        val intent = Intent(context, DashboardActivity::class.java)
-                        //first parameter - key
-                        //second parameter - value
-                        intent.putExtra("email",email)
-                        intent.putExtra("password",password)
+                    val intent = Intent(context, DashboardActivity::class.java)
+                    //first parameter - key
+                    //second parameter - value
+                    intent.putExtra("email",email)
+                    intent.putExtra("password",password)
 
-                        context.startActivity(intent)
-                        activity?.finish()
+                    context.startActivity(intent)
+                    activity?.finish()
 
-                        Toast.makeText(
-                            context,
-                            "Login Success",
-                            Toast.LENGTH_SHORT
-                        )
-                            .show()
+                    Toast.makeText(
+                        context,
+                        "Login Success",
+                        Toast.LENGTH_SHORT
+                    )
+                        .show()
 //                    } else {
 //                        coroutineScope.launch {
 //                            snackBarHostScope.showSnackbar(

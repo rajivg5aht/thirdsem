@@ -7,7 +7,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,16 +18,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,28 +34,40 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import coil.compose.AsyncImage
 import com.example.ai36.R
 import com.example.ai36.Utils.ImageUtils
 import com.example.ai36.model.ProductModel
-import com.example.ai36.repository.ProductRepository
 import com.example.ai36.repository.ProductRepositoryImpl
-import com.example.ai36.repository.UserRepository
-
-import com.example.ai36.view.ui.theme.AI36Theme
 import com.example.ai36.viewmodel.ProductViewModel
 
 class AddProductActivity : ComponentActivity() {
+    // Make this a normal nullable Uri property
+    private var selectedImageUri: Uri? = null
+
     lateinit var imageUtils: ImageUtils
-    var selectedImageUri by mutableStateOf<Uri?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        // Enable edge-to-edge content (replace your enableEdgeToEdge())
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         imageUtils = ImageUtils(this, this)
         imageUtils.registerLaunchers { uri ->
             selectedImageUri = uri
+            // To notify Compose of the new image, call setContent again or better:
+            // Use a Compose state to hold the Uri (see below)
+            // But for simplicity, we call setContent again here:
+            setContent {
+                AddProductBody(
+                    selectedImageUri = selectedImageUri,
+                    onPickImage = { imageUtils.launchImagePicker() }
+                )
+            }
         }
+
         setContent {
             AddProductBody(
                 selectedImageUri = selectedImageUri,
@@ -160,7 +167,7 @@ fun AddProductBody(
                                     val model = ProductModel(
                                         "",
                                         productName,
-                                        productPrice.toDouble(),
+                                        productPrice.toDoubleOrNull() ?: 0.0,
                                         productDescription,
                                         imageUrl
                                     )
@@ -179,8 +186,6 @@ fun AddProductBody(
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
-
-
                     },
                     modifier = Modifier
                         .fillMaxWidth()

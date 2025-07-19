@@ -1,45 +1,18 @@
 package com.example.ai36.view
 
-import android.app.Activity
-import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -47,14 +20,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import com.example.ai36.R
+import androidx.core.view.WindowCompat
 import com.example.ai36.model.UserModel
 import com.example.ai36.repository.UserRepositoryImpl
 import com.example.ai36.viewmodel.UserViewModel
@@ -62,7 +33,10 @@ import com.example.ai36.viewmodel.UserViewModel
 class RegistrationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        // ✅ Modern Edge-to-Edge support
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
             RegistrationBody()
         }
@@ -74,107 +48,93 @@ fun RegistrationBody() {
     val repo = remember { UserRepositoryImpl() }
     val userViewModel = remember { UserViewModel(repo) }
 
-
     val context = LocalContext.current
-    val activity = context as? Activity
 
     var firstName by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var lastname by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
+    var selectedCountry by remember { mutableStateOf("Select Country") }
+    var textFieldSize by remember { mutableStateOf(Size.Zero) }
 
-    var selectedOptionText by remember { mutableStateOf("Select Option") }
+    val countries = listOf("Nepal", "India", "China")
 
-    val options = listOf("Nepal", "India", "China")
-
-    var textFieldSize by remember { mutableStateOf(Size.Zero) } // to capture textfield size
-    Scaffold { innerPadding ->
+    Scaffold { padding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
-                .padding(horizontal = 10.dp)
+                .padding(padding)
+                .padding(16.dp)
                 .fillMaxSize()
-                .background(color = Color.White)
+                .background(Color.White),
+            verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(40.dp))
+
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 OutlinedTextField(
                     value = firstName,
-                    onValueChange = {
-                        firstName = it
-                    },
-                    placeholder = {
-                        Text("Firstname")
-                    },
+                    onValueChange = { firstName = it },
+                    label = { Text("First Name") },
                     modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.width(10.dp))
+
                 OutlinedTextField(
-                    value = lastname,
-                    onValueChange = {
-                        lastname = it
-                    },
-                    placeholder = {
-                        Text("Lastname")
-                    },
+                    value = lastName,
+                    onValueChange = { lastName = it },
+                    label = { Text("Last Name") },
                     modifier = Modifier.weight(1f)
                 )
             }
-            Spacer(modifier = Modifier.height(20.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             OutlinedTextField(
                 value = email,
-                onValueChange = {
-                    email = it
-                },
-                placeholder = {
-                    Text("abc@gmail.com")
-                },
-                modifier = Modifier.fillMaxWidth()
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
                 OutlinedTextField(
-                    value = selectedOptionText,
+                    value = selectedCountry,
                     onValueChange = {},
                     modifier = Modifier
                         .fillMaxWidth()
                         .onGloballyPositioned { coordinates ->
-                            // capture the size of the TextField
                             textFieldSize = coordinates.size.toSize()
                         }
                         .clickable { expanded = true },
-                    placeholder = { Text("Select Country") },
-                    enabled = false, // prevent manual typing
-                    colors = TextFieldDefaults.colors(
-                        disabledIndicatorColor = Color.Gray,
-                        disabledContainerColor = Color.White,
-                    ),
+                    label = { Text("Country") },
+                    enabled = false,
                     trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = null
-                        )
-                    }
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                    },
+                    colors = TextFieldDefaults.colors(
+                        disabledContainerColor = Color.White,
+                        disabledIndicatorColor = Color.Gray
+                    )
                 )
 
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
-                    modifier = Modifier
-                        .width(with(LocalDensity.current) { textFieldSize.width.toDp() })
+                    modifier = Modifier.width(with(LocalDensity.current) { textFieldSize.width.toDp() })
                 ) {
-                    options.forEach { option ->
+                    countries.forEach { country ->
                         DropdownMenuItem(
-                            text = { Text(option) },
+                            text = { Text(country) },
                             onClick = {
-                                selectedOptionText = option
+                                selectedCountry = country
                                 expanded = false
                             }
                         )
@@ -182,36 +142,34 @@ fun RegistrationBody() {
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
             OutlinedTextField(
                 value = password,
-                onValueChange = {
-                    password = it
-                },
-                placeholder = {
-                    Text("*******")
-                },
-                modifier = Modifier.fillMaxWidth()
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = PasswordVisualTransformation()
             )
-            Spacer(modifier = Modifier.height(20.dp))
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
                     userViewModel.register(email, password) { success, message, userId ->
                         if (success) {
-                            val model =
-                                UserModel(
-                                    userId,
-                                    firstName, lastname,
-                                    selectedOptionText, email
-                                )
-                            userViewModel.addUserToDatabase(userId, model) { success, message ->
+                            val model = UserModel(
+                                userId = userId,
+                                firstName = firstName,
+                                lastName = lastName,
+                                country = selectedCountry,
+                                email = email
+                            )
+                            userViewModel.addUserToDatabase(userId, model) { success, dbMessage ->
+                                Toast.makeText(context, dbMessage, Toast.LENGTH_SHORT).show()
                                 if (success) {
-                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                    activity?.finish()
-                                } else {
-                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-
+                                    (context as? ComponentActivity)?.finish()
                                 }
                             }
                         } else {
@@ -219,17 +177,20 @@ fun RegistrationBody() {
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Register")
+                Text("Register", color = Color.White)
             }
-
         }
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-fun preReg() {
+fun RegistrationPreview() {
     RegistrationBody()
 }

@@ -4,24 +4,17 @@ import com.example.ai36.model.UserModel
 import com.google.firebase.auth.FirebaseUser
 
 interface UserRepository {
-//    {
-//     "success":false,
-//    "message":"Login failed",
-//    "userId":"10000045412ew"
-//    }
-
     fun login(
         email: String,
-        password: String, callback: (Boolean, String) -> Unit
+        password: String,
+        callback: (Boolean, String) -> Unit
     )
 
-    //authentication ko function
     fun register(
         email: String, password: String,
         callback: (Boolean, String, String) -> Unit
     )
 
-    //database ko function
     fun addUserToDatabase(
         userId: String, model: UserModel,
         callback: (Boolean, String) -> Unit
@@ -50,5 +43,4 @@ interface UserRepository {
     )
 
     fun logout(callback: (Boolean, String) -> Unit)
-
 }

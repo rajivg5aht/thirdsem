@@ -1,13 +1,11 @@
 package com.example.ai36.view
 
-
 import android.app.Activity
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -25,11 +24,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import coil.compose.AsyncImage
 import com.example.ai36.R
 import com.example.ai36.Utils.ImageUtils
 import com.example.ai36.repository.ProductRepositoryImpl
-
 import com.example.ai36.viewmodel.ProductViewModel
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.ktx.auth
@@ -37,16 +36,26 @@ import com.google.firebase.ktx.Firebase
 
 class EditProfileActivity : ComponentActivity() {
     private lateinit var imageUtils: ImageUtils
-    private var selectedImageUri by mutableStateOf<Uri?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        // Correct edge-to-edge call:
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         imageUtils = ImageUtils(this, this)
-        imageUtils.registerLaunchers { uri -> selectedImageUri = uri }
 
         setContent {
+            // Hoist selectedImageUri state into Compose for smooth UI updates
+            var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+            // Register launcher once inside Compose via LaunchedEffect
+            LaunchedEffect(Unit) {
+                imageUtils.registerLaunchers { uri ->
+                    selectedImageUri = uri
+                }
+            }
+
             EditProfileScreen(
                 selectedImageUri = selectedImageUri,
                 onPickImage = { imageUtils.launchImagePicker() },
@@ -105,7 +114,7 @@ fun EditProfileScreen(
                         interactionSource = remember { MutableInteractionSource() }
                     ) { showImageOptionsMenu = true }
                     .background(Color.LightGray, shape = CircleShape)
-                    .align(alignment = androidx.compose.ui.Alignment.CenterHorizontally)
+                    .align(Alignment.CenterHorizontally)
             ) {
                 if (selectedImageUri != null) {
                     AsyncImage(
@@ -192,7 +201,7 @@ fun EditProfileScreen(
 
             TextButton(
                 onClick = { showPasswordDialog = true },
-                modifier = Modifier.align(androidx.compose.ui.Alignment.End)
+                modifier = Modifier.align(Alignment.End)
             ) {
                 Text("Change Password")
             }
@@ -213,8 +222,6 @@ fun EditProfileScreen(
                             currentUser.updateProfile(request)
                                 .addOnCompleteListener { profileTask ->
                                     if (profileTask.isSuccessful) {
-
-                                        // 🔁 Force reload to fetch updated profile
                                         currentUser.reload().addOnCompleteListener {
                                             currentUser.updateEmail(email)
                                                 .addOnCompleteListener { emailTask ->
