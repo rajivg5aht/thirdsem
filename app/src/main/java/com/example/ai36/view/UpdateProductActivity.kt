@@ -56,15 +56,15 @@ fun UpdateProductBody() {
 
     val productId: String? = activity?.intent?.getStringExtra("productId")
 
-    val products= viewmodel.products.observeAsState(initial = null)
+    val products= viewmodel.product.observeAsState(initial = null)
 
     LaunchedEffect(Unit) {
         viewmodel.getProductById(productId.toString())
     }
 
     name=products.value?.productName?:""
-    price=products.value?.price.toString()
-    description=products.value?.description?:""
+    price=products.value?.productPrice.toString()
+    description=products.value?.productDescription?:""
 
 
 
