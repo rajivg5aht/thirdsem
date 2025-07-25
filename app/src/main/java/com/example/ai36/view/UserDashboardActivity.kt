@@ -86,12 +86,14 @@ fun UserDashboardBody(
         userViewModel.getCurrentUser()?.uid?.let { userViewModel.getUserById(it) }
         productViewModel.getAllProducts()
     }
-    LaunchedEffect(searchQuery) { productViewModel.filterProducts(searchQuery) }
+    LaunchedEffect(searchQuery) {
+        productViewModel.filterProducts(searchQuery)
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("RetroCrugSports") },
+                title = { Text("Helmets and Gears") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFF4CAF50),
                     titleContentColor = Color.White
@@ -203,6 +205,7 @@ fun UserDashboardBody(
                     style = MaterialTheme.typography.titleLarge
                 )
             }
+
             // Search bar
             TextField(
                 value = searchQuery,
@@ -213,12 +216,15 @@ fun UserDashboardBody(
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 4.dp)
             )
+
             // Products list
             when {
                 loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
+
                 products.isEmpty() -> Text("No products found.", Modifier.padding(16.dp))
+
                 else -> LazyColumn(Modifier.padding(8.dp)) {
                     items(products.size) { index ->
                         val product = products[index]
