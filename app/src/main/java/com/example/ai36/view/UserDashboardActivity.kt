@@ -1,15 +1,16 @@
 package com.example.ai36.view
-
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -17,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -24,43 +26,33 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import coil.compose.AsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
+import com.cloudinary.android.MediaManager
 import com.example.ai36.R
 import com.example.ai36.model.CartItemModel
+import com.example.ai36.model.ProductModel
 import com.example.ai36.model.WishlistItemModel
-import com.example.ai36.repository.CartRepositoryImpl
-import com.example.ai36.repository.ProductRepositoryImpl
-import com.example.ai36.repository.UserRepositoryImpl
-import com.example.ai36.repository.WishlistRepositoryImpl
+import com.example.ai36.repository.*
 import com.example.ai36.viewmodel.*
 
 class UserDashboardActivity : ComponentActivity() {
     private lateinit var cartViewModel: CartViewModel
     private lateinit var wishlistViewModel: WishlistViewModel
     private lateinit var userViewModel: UserViewModel
+    private lateinit var orderViewModel: OrderViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        MediaManager.init(this)
+
         cartViewModel = ViewModelProvider(this, CartViewModelFactory(CartRepositoryImpl()))[CartViewModel::class.java]
         wishlistViewModel = ViewModelProvider(this, WishlistViewModelFactory(WishlistRepositoryImpl))[WishlistViewModel::class.java]
         userViewModel = ViewModelProvider(this, UserViewModelFactory(UserRepositoryImpl()))[UserViewModel::class.java]
+        orderViewModel = ViewModelProvider(this, OrderViewModelFactory(OrderRepositoryImpl()))[OrderViewModel::class.java]
 
         setContent {
-            MaterialTheme {
-                UserDashboardBody(
-                    cartViewModel = cartViewModel,
-                    wishlistViewModel = wishlistViewModel,
-                    userViewModel = userViewModel
-                )
-            }
+            UserDashboardBody(cartViewModel, wishlistViewModel, userViewModel, orderViewModel)
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        userViewModel.getCurrentUser()?.uid?.let { userViewModel.getUserById(it) }
     }
 }
 
@@ -69,42 +61,47 @@ class UserDashboardActivity : ComponentActivity() {
 fun UserDashboardBody(
     cartViewModel: CartViewModel,
     wishlistViewModel: WishlistViewModel,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    orderViewModel: OrderViewModel
 ) {
     val context = LocalContext.current
-
     val productViewModel = remember { ProductViewModel(ProductRepositoryImpl()) }
-    val products by productViewModel.filteredProducts.observeAsState(initial = emptyList())
-    val loading by productViewModel.loading.observeAsState(initial = false)
-    var searchQuery by remember { mutableStateOf("") }
-
     val user by userViewModel.user.observeAsState()
+    val filteredProducts by productViewModel.filteredProducts.observeAsState(emptyList())
+    val loading by productViewModel.loading.observeAsState(true)
+
     var menuExpanded by remember { mutableStateOf(false) }
 
-    // Refresh user and products on load
-    LaunchedEffect(userViewModel.getCurrentUser()?.uid) {
-        userViewModel.getCurrentUser()?.uid?.let { userViewModel.getUserById(it) }
+    LaunchedEffect(Unit) {
         productViewModel.getAllProducts()
-    }
-    LaunchedEffect(searchQuery) {
-        productViewModel.filterProducts(searchQuery)
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Helmets and Gears") },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(id = R.drawable.logo),
+                            contentDescription = "Logo",
+                            modifier = Modifier.size(55.dp).clip(CircleShape)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Helmets and Gears")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFFDB4444),
                     titleContentColor = Color.White
                 ),
                 actions = {
                     IconButton(onClick = {
-                        val intent = Intent(context, EditProfileActivity::class.java)
-                        context.startActivity(intent)
+                        context.startActivity(Intent(context, EditProfileActivity::class.java))
                     }) {
                         Icon(Icons.Default.Person, contentDescription = "Edit Profile", tint = Color.White)
                     }
+
+                    // Dropdown menu icon and menu
                     Box {
                         IconButton(onClick = { menuExpanded = true }) {
                             Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = Color.White)
@@ -136,28 +133,24 @@ fun UserDashboardBody(
             )
         },
         bottomBar = {
-            NavigationBar {
+            NavigationBar(containerColor = Color(0xFFDB4444)) {
                 NavigationBarItem(
                     selected = true,
                     onClick = {},
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text("Home") }
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.White) },
+                    label = { Text("Home", color = Color.White) }
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = {
-                        context.startActivity(Intent(context, CartActivity::class.java))
-                    },
-                    icon = { Icon(Icons.Default.ShoppingCart, contentDescription = "Cart") },
-                    label = { Text("Cart") }
+                    onClick = { context.startActivity(Intent(context, CartActivity::class.java)) },
+                    icon = { Icon(Icons.Default.ShoppingCart, contentDescription = "Cart", tint = Color.White) },
+                    label = { Text("Cart", color = Color.White) }
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = {
-                        context.startActivity(Intent(context, WishlistActivity::class.java))
-                    },
-                    icon = { Icon(Icons.Default.FavoriteBorder, contentDescription = "Wishlist") },
-                    label = { Text("Wishlist") }
+                    onClick = { context.startActivity(Intent(context, WishlistActivity::class.java)) },
+                    icon = { Icon(Icons.Default.FavoriteBorder, contentDescription = "Wishlist", tint = Color.White) },
+                    label = { Text("Wishlist", color = Color.White) }
                 )
             }
         }
@@ -167,114 +160,17 @@ fun UserDashboardBody(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // User profile row at top
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(12.dp)
-            ) {
-                val imageModifier = Modifier
-                    .size(48.dp)
-                    .background(Color.LightGray, CircleShape)
-                val imageUrl = user?.image
-                Log.d("UserImage", "Image URL: $imageUrl")
-                if (!imageUrl.isNullOrBlank()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(imageUrl)
-                            .crossfade(true)
-                            .diskCachePolicy(CachePolicy.ENABLED)
-                            .memoryCachePolicy(CachePolicy.ENABLED)
-                            .build(),
-                        contentDescription = "Profile Picture",
-                        modifier = imageModifier,
-                        contentScale = ContentScale.Crop,
-                        placeholder = painterResource(id = R.drawable.profilepicplaceholder),
-                        error = painterResource(id = R.drawable.profilepicplaceholder)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Default Profile",
-                        modifier = imageModifier.padding(8.dp),
-                        tint = Color.White
-                    )
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "Welcome, ${user?.firstName ?: "User"}!",
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
+            UserHeader(user = user)
 
-            // Search bar
-            TextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                placeholder = { Text("Search products...") },
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 4.dp)
-            )
-
-            // Products list
-            when {
-                loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            if (loading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
-
-                products.isEmpty() -> Text("No products found.", Modifier.padding(16.dp))
-
-                else -> LazyColumn(Modifier.padding(8.dp)) {
-                    items(products.size) { index ->
-                        val product = products[index]
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50))
-                        ) {
-                            Column(Modifier.padding(16.dp)) {
-                                Text(
-                                    text = product?.productName ?: "No Name",
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Text(
-                                    text = "Rs. ${product?.productPrice ?: 0.0}",
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = product?.productDescription ?: "",
-                                    color = Color.White
-                                )
-                                Row(
-                                    Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Button(onClick = {
-                                        val cartItem = CartItemModel(
-                                            id = "",
-                                            productName = product?.productName ?: "",
-                                            productPrice = product?.productPrice ?: 0.0,
-                                            image = product?.image ?: "",
-                                            quantity = 1
-                                        )
-                                        cartViewModel.addToCart(cartItem)
-                                        Toast.makeText(context, "Added to cart", Toast.LENGTH_SHORT).show()
-                                    }) { Text("Add to Cart") }
-
-                                    OutlinedButton(onClick = {
-                                        val wishlistItem = WishlistItemModel(
-                                            productName = product?.productName ?: "",
-                                            productPrice = product?.productPrice ?: 0.0,
-                                            image = product?.image ?: ""
-                                        )
-                                        wishlistViewModel.addToWishlist(wishlistItem)
-                                        Toast.makeText(context, "Added to wishlist", Toast.LENGTH_SHORT).show()
-                                    }) { Text("❤️ Wishlist") }
-                                }
-                            }
+            } else {
+                LazyColumn(modifier = Modifier.padding(8.dp)) {
+                    items(filteredProducts) { product ->
+                        product?.let {
+                            ProductCard(it, cartViewModel, wishlistViewModel, context)
                         }
                     }
                 }
@@ -282,3 +178,90 @@ fun UserDashboardBody(
         }
     }
 }
+
+@Composable
+fun UserHeader(user: com.example.ai36.model.UserModel?) {
+    Row(modifier = Modifier.padding(12.dp)) {
+        Text(
+            text = "Welcome, ${user?.firstName ?: "User"}!",
+            style = MaterialTheme.typography.titleLarge
+        )
+    }
+}
+
+@Composable
+fun ProductCard(
+    product: ProductModel,
+    cartViewModel: CartViewModel,
+    wishlistViewModel: WishlistViewModel,
+    context: android.content.Context
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFDB4444)
+        ),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            AsyncImage(
+                model = product.image,
+                contentDescription = product.productName,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp),
+                contentScale = ContentScale.Crop,
+                error = painterResource(id = R.drawable.logo)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(text = product.productName ?: "Unnamed", color = Color.White, style = MaterialTheme.typography.titleMedium)
+            Text(text = "Rs. ${product.productPrice ?: 0}", color = Color.White, style = MaterialTheme.typography.bodyLarge)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = {
+                        val cartItem = CartItemModel(
+                            productId = product.productId ?: "",
+                            productName = product.productName ?: "",
+                            productPrice = product.productPrice ?: 0.0,
+                            image = product.image ?: "",
+                            quantity = 1
+                        )
+                        cartViewModel.addToCart(cartItem)
+                        Toast.makeText(context, "Added to cart", Toast.LENGTH_SHORT).show()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = Color(0xFFDB4444)
+                    )
+                ) {
+                    Text("Add to Cart")
+                }
+
+                IconButton(onClick = {
+                    val wishlistItem = WishlistItemModel(
+                        productName = product.productName ?: "",
+                        productPrice = product.productPrice ?: 0.0,
+                        image = product.image ?: ""
+                    )
+                    wishlistViewModel.addToWishlist(wishlistItem)
+                    Toast.makeText(context, "Added to wishlist", Toast.LENGTH_SHORT).show()
+                }) {
+                    Icon(Icons.Default.FavoriteBorder, contentDescription = "Wishlist", tint = Color.White)
+                }
+            }
+        }
+    }
+}
+
+
