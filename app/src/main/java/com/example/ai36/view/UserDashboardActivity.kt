@@ -95,7 +95,7 @@ fun UserDashboardBody(
             TopAppBar(
                 title = { Text("Helmets and Gears") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF4CAF50),
+                    containerColor = Color(0xFFDB4444),
                     titleContentColor = Color.White
                 ),
                 actions = {

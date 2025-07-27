@@ -66,7 +66,8 @@ fun WishlistScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Your Wishlist", fontSize = 20.sp) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF4CAF50))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFDB4444
+                ))
             )
         }
     ) { padding ->
